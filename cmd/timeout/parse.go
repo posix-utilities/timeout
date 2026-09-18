@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -19,9 +20,31 @@ type Options struct {
 	Positionals    []string
 }
 
-const progName = "timeout"
+const (
+	name         = "timeout"
+	desc         = "POSIX.1-2024 timeout"
+	licenseYear  = "2026"
+	licenseOwner = "AJ ONeal <aj@therootcompany.com> (https://therootcompany.com)"
+	licenseType  = "CC0-1.0 OR MIT OR Apache-2.0"
+)
+
+// Replaced by goreleaser / ldflags at build time.
+var (
+	version = "0.0.0-dev"
+	commit  = "0000000"
+	date    = "0001-01-01"
+)
+
+func printVersion(w io.Writer) {
+	_, _ = fmt.Fprintf(w, "%s v%s %s (%s)\n", name, version, commit[:7], date)
+	_, _ = fmt.Fprintf(w, "%s\n", desc)
+	_, _ = fmt.Fprintf(w, "Copyright (C) %s %s\n", licenseYear, licenseOwner)
+	_, _ = fmt.Fprintf(w, "Licensed under %s\n", licenseType)
+}
 
 func fnHelp() {
+	printVersion(os.Stdout)
+	fmt.Fprintln(os.Stdout)
 	fmt.Printf(`Usage: %s [OPTION]... DURATION COMMAND [ARG]...
 Start COMMAND, and kill it if still running after DURATION.
 
@@ -60,22 +83,22 @@ Exit status:
   127  if COMMAND cannot be found
   137  if COMMAND (or timeout itself) is sent the KILL (9) signal (128+9)
   -    the exit status of COMMAND otherwise
-`, progName)
+`, name)
 	os.Exit(0)
 }
 
 func fnVersion() {
-	fmt.Printf("%s (posix-utilities) 1.0\n", progName)
+	printVersion(os.Stdout)
 	os.Exit(0)
 }
 
 func fnUsageError() {
-	fmt.Fprintf(os.Stderr, "Try '%s --help' for more information.\n", progName)
+	fmt.Fprintf(os.Stderr, "Try '%s --help' for more information.\n", name)
 	os.Exit(125)
 }
 
 func fnError(msg string) {
-	fmt.Fprintf(os.Stderr, "%s: %s\n", progName, msg)
+	fmt.Fprintf(os.Stderr, "%s: %s\n", name, msg)
 	fnUsageError()
 }
 

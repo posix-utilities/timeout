@@ -68,11 +68,11 @@ func main() {
 
 	if err := t.Start(); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
-			fmt.Fprintf(os.Stderr, "%s: %q not found\n", progName, t.command)
+			fmt.Fprintf(os.Stderr, "%s: %q not found\n", name, t.command)
 			os.Exit(127)
 		}
 
-		fmt.Fprintf(os.Stderr, "%s: failed to run command %q: %s\n", progName, t.command, err)
+		fmt.Fprintf(os.Stderr, "%s: failed to run command %q: %s\n", name, t.command, err)
 		os.Exit(126)
 	}
 
@@ -84,6 +84,6 @@ func main() {
 func (t *Timeout) verboseSignal(sig syscall.Signal) {
 	if t.verbose {
 		fmt.Fprintf(os.Stderr, "%s: sending signal %s to command '%s'\n",
-			progName, signalName(sig), filepath.Base(t.command))
+			name, signalName(sig), filepath.Base(t.command))
 	}
 }
