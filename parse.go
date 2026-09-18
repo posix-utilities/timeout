@@ -146,9 +146,9 @@ func parseLongOption(args []string, i int, opts *Options) int {
 	name := arg
 	value := ""
 	hasValue := false
-	if idx := strings.Index(arg, "="); idx >= 0 {
-		name = arg[:idx]
-		value = arg[idx+1:]
+	if before, after, ok := strings.Cut(arg, "="); ok {
+		name = before
+		value = after
 		hasValue = true
 	}
 
@@ -295,10 +295,7 @@ func ParseTimeout(input string) (time.Duration, error) {
 // SIG-prefixed names ("SIGKILL"). Case-insensitive.
 func ParseSignal(name string) (syscall.Signal, error) {
 	if num, err := strconv.Atoi(name); err == nil {
-		if num <= 0 || num >= 128 {
-			return 0, fmt.Errorf("invalid signal number %d", num)
-		}
-		return syscall.Signal(num), nil
+		return fnNumericSignal(num)
 	}
 
 	upper := strings.ToUpper(name)
@@ -313,35 +310,16 @@ func ParseSignal(name string) (syscall.Signal, error) {
 	return 0, fmt.Errorf("unknown signal %q", name)
 }
 
-var signalMap = map[string]syscall.Signal{
-	"ABRT":   syscall.SIGABRT,
-	"ALRM":   syscall.SIGALRM,
-	"BUS":    syscall.SIGBUS,
-	"CHLD":   syscall.SIGCHLD,
-	"CONT":   syscall.SIGCONT,
-	"FPE":    syscall.SIGFPE,
-	"HUP":    syscall.SIGHUP,
-	"ILL":    syscall.SIGILL,
-	"INT":    syscall.SIGINT,
-	"IO":     syscall.SIGIO,
-	"IOT":    syscall.SIGIOT,
-	"KILL":   syscall.SIGKILL,
-	"PIPE":   syscall.SIGPIPE,
-	"PROF":   syscall.SIGPROF,
-	"QUIT":   syscall.SIGQUIT,
-	"SEGV":   syscall.SIGSEGV,
-	"STOP":   syscall.SIGSTOP,
-	"SYS":    syscall.SIGSYS,
-	"TERM":   syscall.SIGTERM,
-	"TRAP":   syscall.SIGTRAP,
-	"TSTP":   syscall.SIGTSTP,
-	"TTIN":   syscall.SIGTTIN,
-	"TTOU":   syscall.SIGTTOU,
-	"URG":    syscall.SIGURG,
-	"USR1":   syscall.SIGUSR1,
-	"USR2":   syscall.SIGUSR2,
-	"VTALRM": syscall.SIGVTALRM,
-	"WINCH":  syscall.SIGWINCH,
-	"XCPU":   syscall.SIGXCPU,
-	"XFSZ":   syscall.SIGXFSZ,
+// signalMap maps signal names to platform signal values.
+// Populated by platform init() functions (timeout_unix.go,
+// timeout_darwin.go, timeout_linux.go, timeout_windows.go).
+var signalMap = map[string]syscall.Signal{}
+
+// fnNumericSignal converts a numeric signal to a platform signal value.
+// Unix: identity with range check. Windows: unsupported (overridden).
+var fnNumericSignal = func(num int) (syscall.Signal, error) {
+	if num <= 0 || num >= 128 {
+		return 0, fmt.Errorf("invalid signal number %d", num)
+	}
+	return syscall.Signal(num), nil
 }
