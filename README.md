@@ -80,7 +80,23 @@ GOOS=linux GOARCH=arm64 go build -o ./timeout-linux-uknown-aarch64 ./timeout.go
 GOOS=linux GOARCH=arm GOARM=v7 go build -o ./timeout-linux-uknown-armv7l ./timeout.go
 GOOS=linux GOARCH=arm GOARM=v6 go build -o ./timeout-linux-uknown-armv6l ./timeout.go
 
-# not supported yet (will require build tags and windows syscalls)
-#GOOS=windows GOARCH=amd64 GOAMD64=v2 go build -o ./timeout-windows-pc-x86_64 ./timeout.go
-#GOOS=windows GOARCH=arm64 go build -o ./timeout-windows-pc-aarch64 ./timeout.go
+GOOS=windows GOARCH=amd64 GOAMD64=v2 go build -o ./timeout-windows-pc-x86_64.exe .
+GOOS=windows GOARCH=arm64 go build -o ./timeout-windows-pc-aarch64.exe .
 ```
+
+### Windows behavior
+
+The Windows build uses Job Objects for process groups and console control
+events for graceful timeout signals. `-f` targets only the child process.
+
+- Named signals are accepted and mapped to Windows actions; `KILL` terminates
+  the process or Job Object.
+- Numeric signals are not supported and return 125.
+- `INT` and other graceful signals use `CTRL_BREAK_EVENT` when a console is
+  available; otherwise timeout falls back to termination.
+- A timeout returns 124. Explicit `KILL` or kill-after returns 137.
+- Windows has no POSIX signal-death status, so `-p` forwards the raw Windows
+  child exit code.
+- If `timeout.exe` is killed externally, descendants may outlive it because
+  automatic Job Object cleanup is not available on all supported Windows 11
+  builds.
