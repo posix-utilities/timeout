@@ -55,13 +55,16 @@ Browse releases at:
 <https://github.com/posix-utilities/timeout/releases>
 
 The archive contains the executable with its executable bit preserved, so
-extracting it does not require a separate `chmod` step. For example:
+extracting it does not require a separate `chmod` step. Move the extracted
+binary to `~/bin/` or another directory already in `PATH`. For example:
 
 ```sh
 curl -fL -o timeout.tar.gz \
   'https://github.com/posix-utilities/timeout/releases/download/cmd/timeout/v1.0.0/timeout_1.0.0_Linux_x86_64.tar.gz'
 tar -xzf timeout.tar.gz
-./timeout --version
+mkdir -p ~/bin
+mv ./timeout ~/bin/timeout
+~/bin/timeout --version
 ```
 
 # Build
